@@ -14,9 +14,6 @@ mutable struct AppState
     PrevFrameTime::Float64
     Texture::Texture
     LightDir::Vec3
-    FrameCount::Int
-    CurrentFPS::Float32
-    FpsTimer::Float64
 end
 
 
@@ -68,11 +65,7 @@ function InitWin()
         Camera,
         time(),
         texture,
-        Vec3(0,0,1),
-        0,          # FrameCount
-        0.0f0,      # CurrentFPS
-        time()      # FpsTimer
-
+        Vec3(0,0,1)
     )
 end
 
@@ -172,8 +165,6 @@ function ProjectVertexVec4(
     ndc_x = clip.x / clip.w
     ndc_y = clip.y / clip.w
     ndc_z = clip.z / clip.w
-
-    # Viewport transform: NDC -> screen pixels
     
     screen_x = (ndc_x + 1.0f0) * 0.5f0 * Float32(app.width)
     screen_y = (1.0f0 - ndc_y) * 0.5f0 * Float32(app.height)
@@ -434,9 +425,7 @@ function DrawColoredPixel(x::Int, y::Int, a::Vec4, b::Vec4, c::Vec4, auv::Tex2, 
     InterpolatedV /= IntepolatedReversedW
 
 
-    #Depth = 1.0f0 - IntepolatedReversedW
-    
-    #distance::Float32 = 1.0f0 / IntepolatedReversedW
+
 
     Depth::Float32 = 1.0f0 / IntepolatedReversedW
     distance::Float32 = Depth
@@ -457,16 +446,6 @@ function DrawColoredPixel(x::Int, y::Int, a::Vec4, b::Vec4, c::Vec4, auv::Tex2, 
         
     end
 
-#inner if
-
-
-    #texX = abs(trunc(Int, InterpolatedU * app.Texture.width)) % app.Texture.width
-    #texY = abs(trunc(Int, InterpolatedV * app.Texture.height)) % app.Texture.height
-
-    #TIndex = app.Texture.width * texY + texX + 1
-
-
-    #baseColor = app.Texture.pixels[TIndex]
 
 end
 
@@ -526,104 +505,3 @@ function RotateXVec(v::Vec3, angle::Vec3)
     )
 end
 
-
-
-
-
-function DrawDigit7Seg!(
-    app::AppState,
-    digit::Int,
-    x::Int,
-    y::Int,
-    scale::Int,
-    color::UInt32
-)
-    t = 2 * scale
-    w = 12 * scale
-    h = 20 * scale
-    half = h ÷ 2
-
-    # segments:
-    #   A
-    # F   B
-    #   G
-    # E   C
-    #   D
-
-    segments = Dict(
-        0 => (true, true, true, true, true, true, false),
-        1 => (false, true, true, false, false, false, false),
-        2 => (true, true, false, true, true, false, true),
-        3 => (true, true, true, true, false, false, true),
-        4 => (false, true, true, false, false, true, true),
-        5 => (true, false, true, true, false, true, true),
-        6 => (true, false, true, true, true, true, true),
-        7 => (true, true, true, false, false, false, false),
-        8 => (true, true, true, true, true, true, true),
-        9 => (true, true, true, true, false, true, true)
-    )
-
-    A, B, C, D, E, F, G = segments[digit]
-
-    if A
-        DrawRect!(app, x + t, y, w - 2t, t, color)
-    end
-
-    if B
-        DrawRect!(app, x + w - t, y + t, t, half - t, color)
-    end
-
-    if C
-        DrawRect!(app, x + w - t, y + half, t, half - t, color)
-    end
-
-    if D
-        DrawRect!(app, x + t, y + h - t, w - 2t, t, color)
-    end
-
-    if E
-        DrawRect!(app, x, y + half, t, half - t, color)
-    end
-
-    if F
-        DrawRect!(app, x, y + t, t, half - t, color)
-    end
-
-    if G
-        DrawRect!(app, x + t, y + half - t ÷ 2, w - 2t, t, color)
-    end
-end
-
-
-
-function DrawNumber7Seg!(
-    app::AppState,
-    value::Int,
-    x::Int,
-    y::Int,
-    scale::Int,
-    color::UInt32
-)
-    text = string(value)
-
-    cursorX = x
-    spacing = 15 * scale
-
-    for ch in text
-        digit = parse(Int, string(ch))
-        DrawDigit7Seg!(app, digit, cursorX, y, scale, color)
-        cursorX += spacing
-    end
-end
-
-
-
-function DrawFPSOverlay!(app::AppState)
-    fps = round(Int, app.CurrentFPS)
-
-    # black background box
-    DrawRect!(app, 10, 10, 110, 40, 0xFF000000)
-
-    # green FPS number
-    DrawNumber7Seg!(app, fps, 20, 18, 1, 0xFF00FF00)
-end

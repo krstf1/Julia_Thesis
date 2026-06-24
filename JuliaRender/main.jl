@@ -17,8 +17,8 @@ const FPS = 120
 const FRAME_TARGET_TIME = 1.0 / FPS
 
 const FOG_COLOR = UInt32(0xff808080)
-const FOG_START = 8.0f0
-const FOG_END = 25.0f0
+const FOG_START = 4.0f0
+const FOG_END = 50.0f0
 
 ShouldCull = false
 Fog = false
@@ -279,8 +279,6 @@ function Update!(app)
 
     end
 
-    DrawFPSOverlay!(app)
-
     #println("drawn = ", drawnCount, " culled = ", culledCount)
 
 end
@@ -291,18 +289,6 @@ function Render!(app)
     state = mfb_update(app.window, app.ColorBuffer)
     if state != MiniFB.STATE_OK
         app.bIsRunning = false
-    end
-end
-
-
-
-function UpdateFPS!(app::AppState)
-    app.FrameCount += 1
-    elapsed = time() - app.FpsTimer
-    if elapsed >= 1.0
-        app.CurrentFPS = Float32(app.FrameCount / elapsed)
-        app.FrameCount = 0
-        app.FpsTimer = time()
     end
 end
 
@@ -327,7 +313,6 @@ end
 
             Render!(app)
 
-            UpdateFPS!(app)
         end
     end
 
